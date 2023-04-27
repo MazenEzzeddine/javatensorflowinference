@@ -47,7 +47,7 @@ public class LabelImage {
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
-            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg");
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "img.png");
 
     labels = loadLabels();
    // infer(images);
@@ -63,7 +63,7 @@ public class LabelImage {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    infer(images.subList((finalI *10), ((finalI +1)*10)-1));
+                    infer(images.subList((finalI *10), ((finalI +1)*10)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -130,7 +130,7 @@ public class LabelImage {
                   int label = argmax(probabilities);
                   System.out.printf(
                           "%-30s --> %-15s (%.2f%% likely)\n",
-                          "porcupine.jpg", labels.get(label), probabilities[label] * 100.0);
+                          image, labels.get(label), probabilities[label] * 100.0);
               }
 
 

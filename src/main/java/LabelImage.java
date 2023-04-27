@@ -15,6 +15,8 @@ import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class LabelImage {
@@ -48,10 +50,33 @@ public class LabelImage {
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg");
 
     labels = loadLabels();
-    infer(images);
+   // infer(images);
+    inferThreads(images);
   }
 
-  private static byte[] loadGraphDef() throws IOException {
+    private static void inferThreads(List<String> images) {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+
+        for ( int i = 0; i < 8; i++) {
+
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    infer(images.subList((finalI *10), ((finalI +1)*10)-1));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+
+        }
+
+
+        executorService.shutdown();
+    }
+
+    private static byte[] loadGraphDef() throws IOException {
     try (InputStream is = LabelImage.class.getClassLoader().getResourceAsStream("graph.pb")) {
       return ByteStreams.toByteArray(is);
     }

@@ -111,6 +111,7 @@ public class LabelImage {
           graph.importGraphDef(loadGraphDef());
 
           long start = System.currentTimeMillis();
+
           for (String image: images) {
               float[] probabilities = null;
               byte[] bytes = Files.readAllBytes(Paths.get(image));

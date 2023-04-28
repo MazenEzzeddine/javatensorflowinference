@@ -24,10 +24,7 @@ public class LabelImage {
 
     static List<String> labels;
   public static void main(String[] args) throws Exception {
-   /* if (args.length < 1) {
-      System.err.println("USAGE: Provide a list of image filenames");
-      System.exit(1);
-    }*/
+
     final List<String> images = List.of("terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",

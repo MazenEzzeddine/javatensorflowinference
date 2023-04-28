@@ -11,52 +11,69 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class LabelImage {
+
+
+    static List<String> labels;
   public static void main(String[] args) throws Exception {
-   /* if (args.length < 1) {
-      System.err.println("USAGE: Provide a list of image filenames");
-      System.exit(1);
-    }*/
-    final List<String> images = List.of("terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg");
 
-    final List<String> labels = loadLabels();
+    final List<String> images = List.of("terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
+            "terrier1u.jpg", "porcupine.jpg", "lion.png", "img.png");
 
-    try (Graph graph = new Graph();
-         Session session = new Session(graph)) {
-      graph.importGraphDef(loadGraphDef());
- for (String image: images) {
-   float[] probabilities = null;
-   byte[] bytes = Files.readAllBytes(Paths.get(image));
-   try (Tensor<String> input = Tensors.create(bytes);
-        Tensor<Float> output =
-                session
-                        .runner()
-                        .feed("encoded_image_bytes", input)
-                        .fetch("probabilities")
-                        .run()
-                        .get(0)
-                        .expect(Float.class)) {
-     if (probabilities == null) {
-       probabilities = new float[(int) output.shape()[0]];
-     }
-     output.copyTo(probabilities);
-     int label = argmax(probabilities);
-     System.out.printf(
-             "%-30s --> %-15s (%.2f%% likely)\n",
-             "porcupine.jpg", labels.get(label), probabilities[label] * 100.0);
-   }
- }
-
-    }
-
+    labels = loadLabels();
+   // infer(images);
+    inferThreads(images);
   }
 
-  private static byte[] loadGraphDef() throws IOException {
+    private static void inferThreads(List<String> images) {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+
+        for ( int i = 0; i < 8; i++) {
+
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    infer(images.subList((finalI *10), ((finalI +1)*10)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+
+        }
+
+
+        executorService.shutdown();
+    }
+
+    private static byte[] loadGraphDef() throws IOException {
     try (InputStream is = LabelImage.class.getClassLoader().getResourceAsStream("graph.pb")) {
       return ByteStreams.toByteArray(is);
     }
@@ -82,5 +99,43 @@ public class LabelImage {
       }
     }
     return best;
+  }
+
+
+  private static void infer(List<String> images) throws IOException {
+      try (Graph graph = new Graph();
+           Session session = new Session(graph)) {
+          graph.importGraphDef(loadGraphDef());
+
+          long start = System.currentTimeMillis();
+
+          for (String image: images) {
+              float[] probabilities = null;
+              byte[] bytes = Files.readAllBytes(Paths.get(image));
+              try (Tensor<String> input = Tensors.create(bytes);
+                   Tensor<Float> output =
+                           session
+                                   .runner()
+                                   .feed("encoded_image_bytes", input)
+                                   .fetch("probabilities")
+                                   .run()
+                                   .get(0)
+                                   .expect(Float.class)) {
+                  if (probabilities == null) {
+                      probabilities = new float[(int) output.shape()[0]];
+                  }
+                  output.copyTo(probabilities);
+                  int label = argmax(probabilities);
+                  System.out.printf(
+                          "%-30s --> %-15s (%.2f%% likely)\n",
+                          image, labels.get(label), probabilities[label] * 100.0);
+              }
+
+
+          }
+          long end  =System.currentTimeMillis();
+          System.out.println("loading and calssifying " +  images.size()  +  " images took : " + (end-start));
+
+      }
   }
 }

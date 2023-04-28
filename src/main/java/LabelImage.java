@@ -47,7 +47,7 @@ public class LabelImage {
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
             "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "whale.jpg",
-            "terrier1u.jpg", "porcupine.jpg", "terrier2.jpg", "img.png");
+            "terrier1u.jpg", "porcupine.jpg", "lion.png", "img.png");
 
     labels = loadLabels();
    // infer(images);
